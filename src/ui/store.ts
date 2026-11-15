@@ -23,9 +23,9 @@ export interface UIState {
 function initialLang(): Lang {
   try {
     const saved = localStorage.getItem('roomvision3d:lang');
-    if (saved === 'ru' || saved === 'en') return saved;
+    if (saved === 'en' || saved === 'hi') return saved;
   } catch { /* storage unavailable */ }
-  return typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
+  return typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('hi') ? 'hi' : 'en';
 }
 
 export function setLang(lang: Lang): void {
