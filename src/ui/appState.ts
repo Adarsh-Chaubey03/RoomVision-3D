@@ -2,7 +2,6 @@ import { createContext, useContext, useSyncExternalStore } from 'react';
 import { Editor } from '../editor/Editor';
 import { createDemoProject } from '../domain/demo';
 import { AnyEntity } from '../domain/factory';
-import { CollaborationService } from '../services/CollaborationService';
 import { ProjectStorage } from '../services/ProjectStorage';
 import { Canvas2DView } from '../view2d/Canvas2DView';
 import { ThreeView } from '../engine/ThreeView';
@@ -12,7 +11,6 @@ import { notify, useUI } from './store';
 export interface App {
   editor: Editor;
   storage: ProjectStorage;
-  collab: CollaborationService;
   views: { plan?: Canvas2DView; scene?: ThreeView };
 }
 
@@ -23,7 +21,6 @@ export function createApp(): App {
   });
   const storage = new ProjectStorage();
   editor.model.load(storage.loadAutosave() ?? createDemoProject());
-  const collab = new CollaborationService(editor.model);
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   editor.model.bus.on('change', () => {
@@ -31,7 +28,7 @@ export function createApp(): App {
     timer = setTimeout(() => storage.autosave(editor.model.toJSON()), 600);
   });
 
-  const app: App = { editor, storage, collab, views: {} };
+  const app: App = { editor, storage, views: {} };
   if (typeof location !== 'undefined' && location.search.includes('debug'))
     (window as unknown as { __rv: App & { models: typeof modelLibrary } }).__rv = Object.assign(app, { models: modelLibrary });
   return app;

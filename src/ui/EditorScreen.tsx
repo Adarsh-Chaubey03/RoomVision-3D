@@ -7,12 +7,12 @@ import { DND_MIME, Tool } from '../editor/types';
 import { drawFurnitureSymbol } from '../view2d/symbols';
 import { App, saveProject, useApp, useHistoryVersion, useModelVersion } from './appState';
 import { Icon, IconName } from './Icon';
-import { CollabPanel, HistoryPanel, ModelsPanel, PropertiesPanel, ScenePanel, useCollabTick } from './panels';
+import { HistoryPanel, ModelsPanel, PropertiesPanel, ScenePanel } from './panels';
 import { notify, selectTool, useUI } from './store';
 import { Viewport } from './Viewport';
 
 // ---- Left nav tab type -----------------------------------------------------------------------
-type NavTab = 'build' | 'catalog' | 'scene' | 'collab' | 'history';
+type NavTab = 'build' | 'catalog' | 'scene' | 'history';
 
 export function EditorScreen() {
   const [navTab, setNavTab] = useState<NavTab>('build');
@@ -20,41 +20,26 @@ export function EditorScreen() {
 
   return (
     <div className="rv-editor">
-      {/* Top bar */}
       <TopBar />
-
       <div className="rv-body">
-        {/* Icon nav rail */}
         <NavRail active={navTab} onChange={setNavTab} />
-
-        {/* Left panel content */}
         <aside className="rv-left-panel">
           {navTab === 'build'   && <BuildPanel />}
           {navTab === 'catalog' && <CatalogPanel />}
           {navTab === 'scene'   && <ScenePanel />}
-          {navTab === 'collab'  && <CollabPanel />}
           {navTab === 'history' && <HistoryPanel />}
         </aside>
-
-        {/* Main workspace */}
         <main className="rv-workspace">
           <Viewport />
         </main>
-
-        {/* Right properties sidebar */}
         <aside className="rv-right-panel">
           <PropertiesPanel />
           <ScenePanel compact />
           <ModelsPanel compact />
-          <CollabPanel compact />
           <HistoryPanel compact />
         </aside>
       </div>
-
-      {/* Status bar */}
       <StatusBar />
-
-      {/* Modals */}
       <ProjectDialog />
       <Toast />
     </div>
@@ -106,13 +91,14 @@ function useHotkeys(): void {
 
 function TopBar() {
   const app = useApp();
-  const { editor, collab } = app;
-  useModelVersion(); useCollabTick();
+  const { editor } = app;
+  useModelVersion();
   const hv = useHistoryVersion(); void hv;
   const viewMode  = useUI((s) => s.viewMode);
   const lastSaved = useUI((s) => s.lastSaved);
-  const time  = lastSaved ? new Date(lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-  const peers = collab.peerList;
+  const time = lastSaved
+    ? new Date(lastSaved).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <header className="rv-topbar">
@@ -171,40 +157,12 @@ function TopBar() {
 
       <div className="rv-topbar-spacer" />
 
-      {/* Collaborator avatars */}
-      {(peers.length > 0 || collab.connected) && (
-        <div className="rv-avatars" title={`${peers.length + 1} online`}>
-          {[collab.me, ...peers].slice(0, 4).map((p) => (
-            <span key={p.id} className="rv-avatar" style={{ background: p.color }}>
-              {p.name.slice(0, 1).toUpperCase()}
-            </span>
-          ))}
-        </div>
-      )}
-      {!collab.connected && !peers.length && (
-        <button className="rv-icon-btn" title="Collaborate" onClick={() => {}}>
-          <Icon name="users" size={16} />
-        </button>
-      )}
-
       {/* Action buttons */}
       <button className="rv-btn rv-btn-ghost" onClick={() => saveProject(app)} title="Save (Ctrl+S)">
         <Icon name="save" size={15} /> Save
       </button>
       <button className="rv-btn rv-btn-ghost" onClick={() => useUI.setState({ dialog: 'project' })}>
         <Icon name="folder" size={15} /> Project
-      </button>
-      <button className="rv-btn rv-btn-share" onClick={() => useUI.setState({ dialog: 'project' })}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-        Share
-      </button>
-
-      {/* Profile */}
-      <button className="rv-avatar rv-avatar-btn" title="Profile" style={{ background: collab.me.color }}>
-        {collab.me.name.slice(0, 1).toUpperCase()}
       </button>
     </header>
   );
@@ -213,11 +171,10 @@ function TopBar() {
 // ---- nav rail ---------------------------------------------------------------------------------
 
 const NAV_ITEMS: { tab: NavTab; label: string; icon: IconName }[] = [
-  { tab: 'build',   label: 'Build',       icon: 'wall' },
-  { tab: 'catalog', label: 'Catalog',     icon: 'layers' },
-  { tab: 'scene',   label: 'Scene',       icon: 'sun' },
-  { tab: 'collab',  label: 'Collaborate', icon: 'users' },
-  { tab: 'history', label: 'History',     icon: 'undo' },
+  { tab: 'build',   label: 'Build',   icon: 'wall'   },
+  { tab: 'catalog', label: 'Catalog', icon: 'layers' },
+  { tab: 'scene',   label: 'Scene',   icon: 'sun'    },
+  { tab: 'history', label: 'History', icon: 'undo'   },
 ];
 
 function NavRail({ active, onChange }: { active: NavTab; onChange: (t: NavTab) => void }) {
@@ -298,56 +255,32 @@ function CatalogPanel() {
   return (
     <div className="rv-panel-content">
       <div className="rv-panel-heading">Catalog</div>
-
-      {/* Search */}
       <div className="rv-search-row">
         <div className="rv-search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input
-            type="search"
-            placeholder="Search furniture..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Search catalog"
-          />
+          <input type="search" placeholder="Search furniture..." value={q}
+            onChange={(e) => setQ(e.target.value)} aria-label="Search catalog" />
         </div>
-        <button className="rv-icon-btn-sm" title="Filter">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-        </button>
       </div>
-
-      {/* Category tabs */}
       <div className="rv-cat-tabs">
         {(['All', 'Furniture', 'Decor'] as const).map((c) => (
-          <button
-            key={c}
-            className={`rv-cat-tab${cat === c ? ' is-active' : ''}`}
-            onClick={() => setCat(c)}
-          >
+          <button key={c} className={`rv-cat-tab${cat === c ? ' is-active' : ''}`} onClick={() => setCat(c)}>
             {c}
           </button>
         ))}
       </div>
-
-      {/* Grid */}
       <div className="rv-cat-grid">
         {items.map((item) => (
-          <button
-            key={item.kind}
-            className="rv-cat-item"
-            draggable
+          <button key={item.kind} className="rv-cat-item" draggable
             onDragStart={(e) => {
               e.dataTransfer.setData(DND_MIME, item.kind);
               e.dataTransfer.setData('text/plain', item.kind);
               e.dataTransfer.effectAllowed = 'copy';
             }}
             onClick={() => place(item)}
-            title={`${item.name}: drag or click to add`}
-          >
+            title={`${item.name}: drag or click to add`}>
             <CatalogIcon item={item} />
             <span>{item.name}</span>
           </button>
