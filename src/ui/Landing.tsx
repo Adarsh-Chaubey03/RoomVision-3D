@@ -1,200 +1,221 @@
-import { useEffect, useRef, useState } from 'react';
-import { boundsOf } from '../core/geometry';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import { ThreeView } from '../engine/ThreeView';
 import { Canvas2DView } from '../view2d/Canvas2DView';
-import { useApp, useModelVersion } from './appState';
-import { Icon } from './Icon';
+import { useApp } from './appState';
 import { SITE } from './siteConfig';
-import { Lang, LandingText, TEXT } from './landingText';
-import { setLang, useUI } from './store';
+import { TEXT } from './landingText';
+import { useUI } from './store';
 
 const start = () => useUI.setState({ screen: 'editor' });
 
-export function Landing() {
-  const lang = useUI((s) => s.lang);
-  const t = TEXT[lang];
-  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+/* ---- feature icon SVGs (inline, no dependency) ---- */
+const FeatureIcon = ({ name }: { name: string }) => {
+  const icons: Record<string, ReactElement> = {
+    grid: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    ),
+    cube: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+    ),
+    sofa: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v2"/><path d="M2 11a2 2 0 012 2v5h16v-5a2 2 0 012-2V9a2 2 0 00-4 0v2H6V9a2 2 0 00-4 0v2z"/>
+        <line x1="6" y1="18" x2="6" y2="21"/><line x1="18" y1="18" x2="18" y2="21"/>
+      </svg>
+    ),
+    move: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/>
+      </svg>
+    ),
+    undo: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/>
+      </svg>
+    ),
+    save: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+      </svg>
+    ),
+  };
+  return <span className="lp-feat-icon">{icons[name] ?? icons.grid}</span>;
+};
 
-  return (
-    <div className="landing" lang={lang}>
-      <header className="landing__nav">
-        <span className="brand brand--static"><Icon name="logo" size={22} /><span>RoomVision 3D</span></span>
-        <nav>
-          <a href="#about">{t.nav.about}</a>
-          <a href="#features">{t.nav.features}</a>
-          <a href="#architecture">{t.nav.architecture}</a>
-          <a href="#stack">{t.nav.stack}</a>
-          <LangSwitch lang={lang} />
-          <button className="btn btn--tape" onClick={start}>{t.nav.open}</button>
-        </nav>
-      </header>
+/* ---- step icons ---- */
+const StepIcon = ({ step }: { step: number }) => {
+  const icons = [
+    // pencil
+    <svg key="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+    // sofa
+    <svg key="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v2"/><path d="M2 11a2 2 0 012 2v5h16v-5a2 2 0 012-2V9a2 2 0 00-4 0v2H6V9a2 2 0 00-4 0v2z"/></svg>,
+    // cube
+    <svg key="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>,
+  ];
+  return <span className="lp-step-icon">{icons[step - 1]}</span>;
+};
 
-      <section className="sheet hero">
-        <div className="hero__copy">
-          <h1>{t.hero.title}</h1>
-          <p>{t.hero.lead}</p>
-          <div className="hero__cta">
-            <button className="btn btn--tape btn--lg" onClick={start}>{t.hero.start}</button>
-            <a className="btn btn--ghost btn--lg" href="#architecture">{t.hero.how}</a>
-          </div>
-        </div>
-        <HeroVisual t={t} />
-        <dl className="titleblock">
-          {t.hero.facts.map(([k, v]) => (
-            <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
-          ))}
-        </dl>
-      </section>
-
-      <section className="band" id="about">
-        <div className="band__inner">
-          <div className="band__text">
-            <h2>{t.about.title}</h2>
-            {t.about.paragraphs.map((p) => <p key={p}>{p}</p>)}
-          </div>
-          <aside className="tryit">
-            <h3>{t.about.tryTitle}</h3>
-            <ol>{t.about.steps.map((s) => <li key={s}>{s}</li>)}</ol>
-          </aside>
-        </div>
-      </section>
-
-      <section className="band band--paper" id="features">
-        <div className="band__inner band__inner--stack">
-          <h2>{t.features.title}</h2>
-          <ul className="features">
-            {t.features.items.map((f) => (
-              <li key={f.title}><h3>{f.title}</h3><p>{f.text}</p></li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="band" id="architecture">
-        <div className="band__inner">
-          <div className="band__text">
-            <h2>{t.architecture.title}</h2>
-            <p className="band__lead">{t.architecture.lead}</p>
-            {t.architecture.items.map((i) => (
-              <div className="point" key={i.title}><h3>{i.title}</h3><p>{i.text}</p></div>
-            ))}
-          </div>
-          <Architecture t={t} />
-        </div>
-      </section>
-
-      <section className="band band--paper" id="stack">
-        <div className="band__inner band__inner--stack">
-          <h2>{t.stack.title}</h2>
-          <div className="stack-wrap">
-            <table className="stack">
-              <thead><tr>{t.stack.head.map((h) => <th key={h}>{h}</th>)}</tr></thead>
-              <tbody>{t.stack.rows.map(([area, tool, why]) => (
-                <tr key={area}><th scope="row">{area}</th><td>{tool}</td><td>{why}</td></tr>
-              ))}</tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section className="band" id="roadmap">
-        <div className="band__inner band__inner--stack">
-          <h2>{t.roadmap.title}</h2>
-          <p className="band__lead">{t.roadmap.lead}</p>
-          <ul className="roadmap">{t.roadmap.items.map((i) => <li key={i}>{i}</li>)}</ul>
-          <div className="band__cta">
-            <button className="btn btn--tape btn--lg" onClick={start}>{t.nav.open}</button>
-            <span>{t.roadmap.cta}</span>
-          </div>
-        </div>
-      </section>
-
-      {(SITE.repoUrl || SITE.author) && (
-        <footer className="landing__footer">
-          {SITE.repoUrl && <a href={SITE.repoUrl} target="_blank" rel="noreferrer">{t.roadmap.source}</a>}
-          {SITE.author  && <span>{t.roadmap.author}: {SITE.author}</span>}
-        </footer>
-      )}
-    </div>
-  );
-}
-
-function LangSwitch({ lang }: { lang: Lang }) {
-  return (
-    <div className="langswitch" role="group" aria-label="Language">
-      {(['en', 'hi'] as const).map((l) => (
-        <button key={l} className={l === lang ? 'is-on' : ''} aria-pressed={l === lang} onClick={() => setLang(l)}>
-          {l.toUpperCase()}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function HeroVisual({ t }: { t: LandingText }) {
+/* ---- Hero 3D preview ---- */
+function HeroPreview() {
   const app = useApp();
-  const scene = useRef<HTMLDivElement>(null);
-  const plan  = useRef<HTMLDivElement>(null);
+  const scene3d = useRef<HTMLDivElement>(null);
+  const scene2d = useRef<HTMLDivElement>(null);
   const [noGl, setNoGl] = useState(false);
-  useModelVersion();
 
   useEffect(() => {
     let three: ThreeView | undefined;
     if (ThreeView.isSupported()) {
-      try { three = new ThreeView(scene.current as HTMLDivElement, app.editor, { interactive: false, autoRotate: true }); three.setSettings({ daylight: 'day', wallMode: 'auto' }); }
-      catch { setNoGl(true); }
-    } else setNoGl(true);
-    const flat = new Canvas2DView(plan.current as HTMLDivElement, app.editor, { interactive: false });
+      try {
+        three = new ThreeView(scene3d.current as HTMLDivElement, app.editor, { interactive: false, autoRotate: true });
+        three.setSettings({ daylight: 'day', wallMode: 'up' });
+      } catch { setNoGl(true); }
+    } else {
+      setNoGl(true);
+    }
+    const flat = new Canvas2DView(scene2d.current as HTMLDivElement, app.editor, { interactive: false });
     return () => { three?.dispose(); flat.dispose(); };
   }, [app]);
 
-  const b = boundsOf(app.editor.model.walls.flatMap((w) => [w.a, w.b]));
-  const width = b ? b.max.x - b.min.x : 0;
-
   return (
-    <figure className="hero__visual">
-      <div className="dimline" aria-hidden="true"><span /><em>{width.toFixed(2)} m</em><span /></div>
-      <div className="hero__scene" ref={scene}>{noGl && <p className="hero__fallback">{t.hero.noGl}</p>}</div>
-      <div className="hero__plan" ref={plan} aria-hidden="true" />
-      <figcaption>{t.hero.caption}</figcaption>
-    </figure>
+    <div className="lp-hero-preview">
+      {/* main 3D render */}
+      <div className="lp-hero-3d" ref={scene3d}>
+        {noGl && <p className="lp-hero-nogel">3D preview requires WebGL</p>}
+      </div>
+      {/* 2D plan overlay card */}
+      <div className="lp-hero-plan-card">
+        <div className="lp-hero-plan" ref={scene2d} />
+      </div>
+      {/* arrow — starts on 2D card side, tip lands on 3D scene side */}
+      <svg className="lp-hero-arrow" viewBox="0 0 90 64" fill="none">
+        <path d="M8 54 Q38 8 82 28" stroke="#f5c518" strokeWidth="3.5" strokeDasharray="7 4" strokeLinecap="round"/>
+        <path d="M74 22 L84 30 L73 36" stroke="#f5c518" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      </svg>
+    </div>
   );
 }
 
-function Architecture({ t }: { t: LandingText }) {
-  const d = t.diagram;
-  return (
-    <svg className="arch" viewBox="0 0 760 400" role="img" aria-label={d.label}>
-      <defs>
-        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0 0L10 5L0 10z" fill="currentColor" />
-        </marker>
-      </defs>
-      <g className="arch__edges" markerEnd="url(#ah)">
-        <line x1="145" y1="72" x2="145" y2="112" /><path d="M250 46H290" /><path d="M380 72V150" />
-        <path d="M615 72V112L615 150" /><path d="M145 262V318" /><path d="M380 262V318" /><path d="M615 262V318" />
-      </g>
-      <g className="arch__labels">
-        <text x="392" y="118">{d.commands}</text><text x="157" y="296">{d.events}</text>
-        <text x="392" y="296">{d.events}</text><text x="627" y="296">{d.ops}</text>
-      </g>
-      <Box x={40}  y={20}  w={210} h={52}  title={d.ui[0]}     sub={d.ui[1]} />
-      <Box x={290} y={20}  w={180} h={52}  title={d.editor[0]} sub={d.editor[1]} />
-      <Box x={520} y={20}  w={190} h={52}  title={d.collab[0]} sub={d.collab[1]} />
-      <Box x={40}  y={150} w={670} h={112} title={d.model[0]}  sub={d.model[1]} strong />
-      <Box x={40}  y={322} w={210} h={58}  title={d.plan[0]}   sub={d.plan[1]} />
-      <Box x={290} y={322} w={180} h={58}  title={d.scene[0]}  sub={d.scene[1]} />
-      <Box x={520} y={322} w={190} h={58}  title={d.data[0]}   sub={d.data[1]} />
-    </svg>
-  );
-}
+/* ---- Main landing component ---- */
+export function Landing() {
+  const lang = useUI((s) => s.lang);
+  const t = TEXT[lang];
 
-function Box(p: { x: number; y: number; w: number; h: number; title: string; sub: string; strong?: boolean }) {
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+
   return (
-    <g className={`arch__box${p.strong ? ' arch__box--strong' : ''}`}>
-      <rect x={p.x} y={p.y} width={p.w} height={p.h} rx="2" />
-      <text x={p.x + 14} y={p.y + (p.strong ? 40 : 24)} className="arch__title">{p.title}</text>
-      <text x={p.x + 14} y={p.y + (p.strong ? 66 : 42)} className="arch__sub">{p.sub}</text>
-    </g>
+    <div className="lp-root">
+
+      {/* ── NAV ── */}
+      <nav className="lp-nav">
+        <div className="lp-nav-brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-7h6v7"/>
+          </svg>
+          <span>RoomVision 3D</span>
+        </div>
+        <ul className="lp-nav-links">
+          <li><a href="#about">{t.nav.about}</a></li>
+          <li><a href="#features">{t.nav.features}</a></li>
+          <li><a href="#how">{t.nav.howItWorks}</a></li>
+        </ul>
+        <button className="lp-btn-primary" onClick={start}>
+          {t.nav.open}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="lp-hero" id="about">
+        <div className="lp-hero-copy">
+          <h1>
+            {t.hero.titleLine1}<br />
+            {t.hero.titleLine2}<span className="lp-accent">{t.hero.titleAccent}</span>
+          </h1>
+          <p>{t.hero.lead}</p>
+          <div className="lp-hero-cta">
+            <button className="lp-btn-yellow" onClick={start}>{t.hero.start}</button>
+            <button className="lp-btn-outline" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>{t.hero.explore}</button>
+          </div>
+        </div>
+        <HeroPreview />
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="lp-features-section" id="features">
+        <h2 className="lp-section-title">{t.features.title}</h2>
+        <div className="lp-divider" />
+        <div className="lp-features-grid">
+          {t.features.items.map((f) => (
+            <div className="lp-feat-card" key={f.title}>
+              <FeatureIcon name={f.icon} />
+              <div>
+                <h3>{f.title}</h3>
+                <p>{f.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="lp-how-section" id="how">
+        <h2 className="lp-section-title">{t.howItWorks.title}</h2>
+        <div className="lp-divider" />
+        <div className="lp-steps">
+          {t.howItWorks.steps.map((s, i) => (
+            <div className="lp-step" key={s.title}>
+              <div className="lp-step-num">{i + 1}</div>
+              <div className="lp-step-card">
+                <StepIcon step={i + 1} />
+                <div>
+                  <h3>{s.title}</h3>
+                  <p>{s.text}</p>
+                </div>
+              </div>
+              {i < t.howItWorks.steps.length - 1 && <div className="lp-step-dash" />}
+            </div>
+          ))}
+        </div>
+        <div className="lp-how-cta">
+          <button className="lp-btn-yellow lp-btn-lg" onClick={start}>
+            {t.howItWorks.cta}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </button>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="lp-footer">
+        <div className="lp-footer-brand">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-7h6v7"/>
+          </svg>
+          <span>RoomVision 3D</span>
+        </div>
+        <span className="lp-footer-copy">{t.footer.copy}</span>
+        <div className="lp-footer-links">
+          {SITE.repoUrl && (
+            <>
+              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="lp-footer-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+                {t.footer.linkedin}
+              </a>
+              <a href={SITE.repoUrl} target="_blank" rel="noreferrer" className="lp-footer-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                {t.footer.github}
+              </a>
+            </>
+          )}
+        </div>
+      </footer>
+
+    </div>
   );
 }
