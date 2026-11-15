@@ -1977,6 +1977,112 @@ kbd {
   line-height: 1.4;
 }
 
+/* ---- RIGHT PANEL light-bg overrides ---- */
+.rv-right-panel .rv-muted          { color: #888; }
+.rv-right-panel code               { color: #555; background: #f0ede8; border: 1px solid #ddd; }
+.rv-right-panel .rv-models-list li { border-color: #eee; }
+.rv-right-panel .rv-models-name    { color: #1a1f2e; }
+.rv-right-panel .rv-models-name small { color: #999; }
+.rv-right-panel .rv-peers li,
+.rv-right-panel .rv-activity li    { color: #1a1f2e; }
+.rv-right-panel .rv-peers em,
+.rv-right-panel .rv-activity em    { color: #999; }
+.rv-right-panel .rv-history li     { color: #1a1f2e; }
+.rv-right-panel .rv-history li::before { color: #ccc; }
+.rv-right-panel .rv-history li.is-undone { color: #bbb; }
+.rv-right-panel .rv-hist-controls .rv-icon-btn-sm {
+  background: #f4f2ee;
+  border: 1px solid #ddd;
+  color: #555;
+}
+.rv-right-panel .rv-hist-controls .rv-icon-btn-sm:hover {
+  background: #ebe8e2;
+  color: #1a1f2e;
+}
+.rv-right-panel .rv-section-body .rv-btn-sm { color: #1a1f2e; }
+
+/* ---- LEFT PANEL dark-bg overrides ---- */
+/* Everything inside the dark left panel needs light text */
+.rv-left-panel .rv-muted          { color: var(--rv-muted-dk); }
+.rv-left-panel .rv-panel-heading  { color: var(--rv-text-dk); }
+.rv-left-panel code               { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.1); border: none; }
+
+/* rv-btn-sm used inside the dark left panel (models, collab, history tabs) */
+.rv-left-panel .rv-btn-sm {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.14);
+  color: var(--rv-text-dk);
+}
+.rv-left-panel .rv-btn-sm:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.22);
+  color: #fff;
+}
+.rv-left-panel .rv-btn-danger     { color: #ff8080; }
+.rv-left-panel .rv-btn-primary    { background: var(--rv-accent2); border-color: var(--rv-accent2); color: #fff; }
+.rv-left-panel .rv-btn-on         { background: rgba(255,255,255,0.18); color: #fff; border-color: rgba(255,255,255,0.2); }
+.rv-left-panel .rv-actions .rv-btn-sm { margin-top: 0; }
+
+/* prop labels, stats, section headers inside dark left panel */
+.rv-left-panel .rv-prop-label     { color: rgba(255,255,255,0.4); }
+.rv-left-panel .rv-stats > div    { border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.rv-left-panel .rv-stats > div strong { color: var(--rv-text-dk); }
+
+/* models list in dark panel */
+.rv-left-panel .rv-models-list li { border-color: rgba(255,255,255,0.07); }
+.rv-left-panel .rv-models-name    { color: var(--rv-text-dk); }
+.rv-left-panel .rv-models-name small { color: rgba(255,255,255,0.4); }
+
+/* collab / peers in dark panel */
+.rv-left-panel .rv-peers li,
+.rv-left-panel .rv-activity li    { color: var(--rv-text-dk); }
+.rv-left-panel .rv-peers em,
+.rv-left-panel .rv-activity em    { color: rgba(255,255,255,0.4); }
+.rv-left-panel .rv-ws-row input   { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: var(--rv-text-dk); }
+.rv-left-panel .rv-ws-row input::placeholder { color: rgba(255,255,255,0.3); }
+.rv-left-panel .rv-ws-row input:focus { border-color: var(--rv-accent); }
+.rv-left-panel .rv-name-field     { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+.rv-left-panel .rv-name-field span { color: rgba(255,255,255,0.4); }
+.rv-left-panel .rv-name-field input { color: var(--rv-text-dk); }
+
+/* history in dark panel */
+.rv-left-panel .rv-history li     { color: var(--rv-text-dk); }
+.rv-left-panel .rv-history li::before { color: rgba(255,255,255,0.25); }
+.rv-left-panel .rv-history li.is-undone { color: rgba(255,255,255,0.3); }
+.rv-left-panel .rv-hist-controls .rv-icon-btn-sm { color: rgba(255,255,255,0.65); }
+.rv-left-panel .rv-hist-controls .rv-icon-btn-sm:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* section header inside dark panel (compact props in left) */
+.rv-left-panel .rv-section        { border-color: rgba(255,255,255,0.08); }
+.rv-left-panel .rv-section-header { color: var(--rv-text-dk); }
+.rv-left-panel .rv-section-header:hover { background: rgba(255,255,255,0.05); }
+.rv-left-panel .rv-section-toggle { color: rgba(255,255,255,0.3); }
+.rv-left-panel .rv-section-icon   { color: rgba(255,255,255,0.5); }
+.rv-left-panel .rv-badge          { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.55); }
+.rv-left-panel .rv-section-body   { }
+.rv-left-panel .rv-rotation-input { color: var(--rv-text-dk); }
+.rv-left-panel .rv-prop-rotation  { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+
+/* field (NumberField) inside dark left panel */
+.rv-left-panel .field             { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+.rv-left-panel .field span        { color: rgba(255,255,255,0.45); }
+.rv-left-panel .field input       { color: var(--rv-text-dk); }
+.rv-left-panel .field:focus-within { border-color: var(--rv-accent); box-shadow: 0 0 0 1px var(--rv-accent); }
+
+/* toggle inside dark panel */
+.rv-left-panel .toggle            { color: var(--rv-text-dk); }
+.rv-left-panel .toggle small      { color: rgba(255,255,255,0.4); }
+.rv-left-panel .toggle i          { background: rgba(255,255,255,0.15); }
+
+/* seg (Segmented) inside dark left panel */
+.rv-left-panel .seg               { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+.rv-left-panel .seg__btn          { color: rgba(255,255,255,0.65); }
+.rv-left-panel .seg__btn + .seg__btn { border-color: rgba(255,255,255,0.1); }
+.rv-left-panel .seg__btn.is-on    { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* swatch material picker in dark left panel */
+.rv-left-panel .swatches .swatch  { border-color: rgba(0,0,0,0.3); }
+
 /* ---- responsive ---- */
 @media (max-width: 1100px) {
   .rv-body { grid-template-columns: 56px 200px minmax(0,1fr) 268px; }
